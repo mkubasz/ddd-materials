@@ -1,0 +1,62 @@
+class AssignePackageToDelivery extends Command {
+    constructor(
+        packageId, 
+        deliveryId
+    );
+}
+
+class AssignedPackageToDelivery extends Event {
+    constructor(
+        id, 
+        packageId, 
+        deliveryId
+    );
+}
+
+class Address extends Entity {
+    constructor(
+        id, 
+        street, 
+        city, 
+        country, 
+        zipCode
+    );
+}
+
+const Products  = {
+    PIEROGI,
+    BARSZ_SLASKI
+}
+
+class PackageDelivery extends AggregationRoot {
+    constructor(
+        packageValidator, 
+        deliveryValidator
+    );
+
+    asssignPackegeToDelivery(package, delivery) {
+        if (
+            // PackageCheck table
+            packageValidator.checked(package.id) && 
+            // DeliveryStatus table
+            deliveryValidator.open(delivery.id) &&
+            // DeliveryAuthorization and rules
+            deliveryValidator.allowAddNewPackage(delivery.id)
+        ) {
+                super.commit(
+                    new AssignedPackageToDelivery(
+                        new Uuid(), 
+                        package.id, 
+                        delivery.id
+                    )
+                );
+                return;
+        }
+        super.commit(
+            new DisallowedAssignePackage(
+                new Uuid(), 
+                package.id
+            )
+        );
+    }
+}
